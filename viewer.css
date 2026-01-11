@@ -172,6 +172,16 @@ button:disabled {
   font-weight: 600;
 }
 
+.notice {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted-strong);
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 240px 1fr;

@@ -17,6 +17,8 @@ const COLLECTION_LABELS = {
   uncategorized: 'Uncategorized'
 };
 
+const KNOWN_SIZES = new Set([16, 20, 24, 28, 32, 36, 40, 48, 64, 72, 96, 128, 256, 512, 1024]);
+
 const state = {
   catalog: [],
   categories: [],
@@ -83,6 +85,31 @@ const formatBytes = (value) => {
     idx += 1;
   }
   return `${size.toFixed(size < 10 ? 1 : 0)} ${units[idx]}`;
+};
+
+const getBaseName = (value) => {
+  if (!value) return '';
+  const parts = value.split('/');
+  return parts[parts.length - 1] || value;
+};
+
+const parseSizeVariant = (value) => {
+  const baseName = getBaseName(value);
+  const base = baseName.replace(/\.[^/.]+$/, '');
+  const match = base.match(/(?:^|[_-])(\d{2,4})(?:px)?$/);
+  if (!match) return null;
+  const size = Number(match[1]);
+  return KNOWN_SIZES.has(size) ? size : null;
+};
+
+const buildFamilyKey = (value) => {
+  const baseName = getBaseName(value);
+  let base = baseName.replace(/\.[^/.]+$/, '');
+  const match = base.match(/(?:^|[_-])(\d{2,4})(?:px)?$/);
+  if (match && KNOWN_SIZES.has(Number(match[1]))) {
+    base = base.slice(0, match.index);
+  }
+  return base.toLowerCase();
 };
 
 const normalizeBaseUrl = (url) => {
@@ -165,6 +192,10 @@ const persistBaseUrl = () => {
 const buildMetaRows = (icon) => {
   const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
   const repoPath = icon.path ? `icons/${icon.path}` : '';
+  const sizeList = Array.isArray(icon.sizeVariants) && icon.sizeVariants.length
+    ? icon.sizeVariants.join(', ')
+    : (icon.sizeVariant ? String(icon.sizeVariant) : 'Standard');
+  const variantCount = icon.familyCount || 1;
   const rows = [
     icon.id ? ['ID', icon.id] : null,
     repoPath ? ['Repo Path', repoPath] : null,
@@ -178,7 +209,9 @@ const buildMetaRows = (icon) => {
     ['License', icon.license || 'Unknown'],
     icon.style ? ['Style', icon.style] : null,
     ['File type', icon.extension ? icon.extension.toUpperCase() : 'Unknown'],
-    ['File size', formatBytes(icon.sizeBytes)]
+    ['File size', formatBytes(icon.sizeBytes)],
+    ['Sizes', sizeList],
+    ['Variants', String(variantCount)]
   ].filter(Boolean);
 
   return rows
@@ -397,13 +430,23 @@ const renderIcons = (reset) => {
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
-    meta.innerHTML = `
-      <span>${COLLECTION_LABELS[icon.collection] || toTitle(icon.collection)} / ${icon.category}</span>
-      <span>Library: ${icon.library || 'Unknown'}${icon.uiSet ? ` · ${icon.uiSet}` : ''}</span>
-      <span>Source: ${icon.source || 'Unknown'}${icon.brandOwner ? ` · ${icon.brandOwner}` : ''}</span>
-      <span>${icon.fileName}</span>
-      <span>License: ${icon.license || 'Unknown'} | ${formatBytes(icon.sizeBytes)}</span>
-    `;
+    const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
+    const sizeLabel = icon.sizeVariants && icon.sizeVariants.length > 1
+      ? `Sizes: ${icon.sizeVariants.join(' / ')}`
+      : (icon.sizeVariant ? `Size: ${icon.sizeVariant}` : null);
+    const variantLabel = icon.familyCount && icon.familyCount > 1
+      ? `Variants: ${icon.familyCount}`
+      : null;
+    const metaLines = [
+      `${collectionLabel} / ${icon.category}`,
+      `Library: ${icon.library || 'Unknown'}${icon.uiSet ? ` · ${icon.uiSet}` : ''}`,
+      `Source: ${icon.source || 'Unknown'}${icon.brandOwner ? ` · ${icon.brandOwner}` : ''}`,
+      sizeLabel,
+      variantLabel,
+      icon.fileName,
+      `License: ${icon.license || 'Unknown'} | ${formatBytes(icon.sizeBytes)}`
+    ].filter(Boolean);
+    meta.innerHTML = metaLines.map((line) => `<span>${line}</span>`).join('');
 
     const tags = document.createElement('div');
     tags.className = 'tags';
@@ -489,27 +532,55 @@ const loadData = async () => {
     const catalogData = await catalogResponse.json();
     const categoriesData = await categoriesResponse.json();
 
-    state.catalog = (catalogData.icons || []).map((icon) => ({
-      ...icon,
-      search: [
-        icon.title,
-        icon.name,
-        icon.fileName,
-        icon.category,
-        icon.collection,
-        icon.library,
-        icon.source,
-        icon.brandOwner,
-        icon.description,
-        icon.license,
-        icon.style,
-        icon.uiSet,
-        ...(icon.tags || [])
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-    }));
+    const rawIcons = catalogData.icons || [];
+    const enrichedIcons = rawIcons.map((icon) => {
+      const sizeVariant = parseSizeVariant(icon.fileName || icon.path || '');
+      const familyKey = buildFamilyKey(icon.fileName || icon.path || '');
+      return {
+        ...icon,
+        sizeVariant,
+        familyKey,
+        search: [
+          icon.title,
+          icon.name,
+          icon.fileName,
+          icon.category,
+          icon.collection,
+          icon.library,
+          icon.source,
+          icon.brandOwner,
+          icon.description,
+          icon.license,
+          icon.style,
+          icon.uiSet,
+          ...(icon.tags || [])
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+      };
+    });
+
+    const familyIndex = new Map();
+    enrichedIcons.forEach((icon) => {
+      const key = icon.familyKey || icon.name || icon.fileName || icon.path || '';
+      const entry = familyIndex.get(key) || { sizes: new Set(), count: 0 };
+      if (icon.sizeVariant) {
+        entry.sizes.add(icon.sizeVariant);
+      }
+      entry.count += 1;
+      familyIndex.set(key, entry);
+    });
+
+    state.catalog = enrichedIcons.map((icon) => {
+      const key = icon.familyKey || icon.name || icon.fileName || icon.path || '';
+      const entry = familyIndex.get(key) || { sizes: new Set(), count: 1 };
+      return {
+        ...icon,
+        sizeVariants: Array.from(entry.sizes).sort((a, b) => a - b),
+        familyCount: entry.count
+      };
+    });
 
     state.categories = categoriesData.categories || [];
 
