@@ -34,6 +34,11 @@
             </select>
           </label>
 
+          <label class="field">
+            <span class="field-label">Thumb size</span>
+            <input id="sizeRange" type="range" min="100" max="200" value="150" />
+          </label>
+
           <div class="field">
             <span class="field-label">File type</span>
             <div class="toggle-row">
@@ -71,19 +76,42 @@
         </div>
       </header>
 
-      <div class="layout">
-        <aside class="sidebar">
+    <div class="layout">
+      <aside class="sidebar">
           <div class="sidebar-header">Categories</div>
           <div id="categoryList" class="category-list"></div>
-        </aside>
+      </aside>
 
-        <main class="main">
-          <div id="status" class="status">Loading metadata...</div>
-          <div id="grid" class="grid"></div>
-          <div class="load-more">
-            <button id="loadMoreButton" type="button">Load more</button>
+      <main class="main">
+        <div id="status" class="status">Loading metadata...</div>
+        <div id="grid" class="grid"></div>
+        <div class="load-more">
+          <button id="loadMoreButton" type="button">Load more</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="modal" class="modal" aria-hidden="true">
+      <div class="modal-surface" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="modalClose" type="button">Close</button>
+        <div class="modal-body">
+          <div class="modal-preview">
+            <div class="modal-thumb">
+              <img id="modalImage" alt="" />
+            </div>
+            <div class="modal-path" id="modalPath"></div>
           </div>
-        </main>
+          <div class="modal-info">
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-subtitle" id="modalSubtitle"></div>
+            <div class="modal-meta" id="modalMeta"></div>
+            <div class="modal-tags" id="modalTags"></div>
+            <div class="modal-actions" id="modalActions"></div>
+          </div>
+        </div>
       </div>
     </div>
 

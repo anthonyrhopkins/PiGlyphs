@@ -37,6 +37,7 @@ const dom = {
   categorySelect: document.getElementById('categorySelect'),
   filterSvg: document.getElementById('filterSvg'),
   filterPng: document.getElementById('filterPng'),
+  sizeRange: document.getElementById('sizeRange'),
   sourceMode: document.getElementById('sourceMode'),
   baseUrlInput: document.getElementById('baseUrlInput'),
   applyBaseUrl: document.getElementById('applyBaseUrl'),
@@ -45,7 +46,17 @@ const dom = {
   categoryList: document.getElementById('categoryList'),
   grid: document.getElementById('grid'),
   status: document.getElementById('status'),
-  loadMoreButton: document.getElementById('loadMoreButton')
+  loadMoreButton: document.getElementById('loadMoreButton'),
+  toast: document.getElementById('toast'),
+  modal: document.getElementById('modal'),
+  modalClose: document.getElementById('modalClose'),
+  modalImage: document.getElementById('modalImage'),
+  modalTitle: document.getElementById('modalTitle'),
+  modalSubtitle: document.getElementById('modalSubtitle'),
+  modalMeta: document.getElementById('modalMeta'),
+  modalTags: document.getElementById('modalTags'),
+  modalActions: document.getElementById('modalActions'),
+  modalPath: document.getElementById('modalPath')
 };
 
 const debounce = (fn, wait = 220) => {
@@ -77,6 +88,23 @@ const formatBytes = (value) => {
 const normalizeBaseUrl = (url) => {
   if (!url) return '';
   return url.trim().replace(/\/+$/, '');
+};
+
+const setThumbSize = (value) => {
+  const numeric = Number(value) || 150;
+  const imageSize = Math.max(70, numeric - 30);
+  document.documentElement.style.setProperty('--thumb-size', `${numeric}px`);
+  document.documentElement.style.setProperty('--thumb-image-size', `${imageSize}px`);
+};
+
+const showToast = (message) => {
+  if (!dom.toast) return;
+  dom.toast.textContent = message;
+  dom.toast.classList.add('visible');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => {
+    dom.toast.classList.remove('visible');
+  }, 1400);
 };
 
 const getBaseUrl = () => {
@@ -120,6 +148,88 @@ const persistBaseUrl = () => {
     localStorage.setItem(STORAGE_BASE_URL, url);
   }
   renderIcons(true);
+};
+
+const buildMetaRows = (icon) => {
+  const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
+  const rows = [
+    ['Collection', collectionLabel],
+    ['Category', icon.category || 'Uncategorized'],
+    ['Library', icon.library || 'Unknown'],
+    icon.uiSet ? ['UI Set', icon.uiSet] : null,
+    icon.description ? ['Description', icon.description] : null,
+    ['Source', icon.source || 'Unknown'],
+    icon.brandOwner ? ['Brand Owner', icon.brandOwner] : null,
+    ['License', icon.license || 'Unknown'],
+    icon.style ? ['Style', icon.style] : null,
+    ['File type', icon.extension ? icon.extension.toUpperCase() : 'Unknown'],
+    ['File size', formatBytes(icon.sizeBytes)]
+  ].filter(Boolean);
+
+  return rows
+    .map(([label, value]) => `<div class="label">${label}</div><div>${value}</div>`)
+    .join('');
+};
+
+const openModal = (icon) => {
+  if (!dom.modal) return;
+  const baseUrl = getBaseUrl();
+  const url = baseUrl ? `${baseUrl}/${icon.path}` : icon.path;
+  const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
+
+  dom.modalImage.src = url;
+  dom.modalImage.alt = icon.name || icon.fileName || 'icon';
+  dom.modalTitle.textContent = icon.title || icon.name || icon.fileName || 'Icon';
+  dom.modalSubtitle.textContent = `${collectionLabel} / ${icon.category || 'Uncategorized'}`;
+  dom.modalPath.textContent = icon.path || '';
+  dom.modalMeta.innerHTML = buildMetaRows(icon);
+
+  dom.modalTags.innerHTML = '';
+  const tagSet = new Set();
+  if (icon.isNew) tagSet.add('new');
+  if (icon.style) tagSet.add(icon.style);
+  if (icon.uiSet) tagSet.add(icon.uiSet);
+  if (icon.library) tagSet.add(icon.library);
+  (icon.tags || []).forEach((tag) => tagSet.add(tag));
+
+  Array.from(tagSet).slice(0, 16).forEach((tag) => {
+    const tagEl = document.createElement('span');
+    tagEl.className = 'tag';
+    tagEl.textContent = tag;
+    dom.modalTags.appendChild(tagEl);
+  });
+
+  dom.modalActions.innerHTML = '';
+
+  const actions = [
+    { label: 'Copy URL', action: () => copyToClipboard(url, 'URL copied') },
+    { label: 'Copy path', action: () => copyToClipboard(icon.path, 'Path copied'), secondary: true },
+    { label: 'Copy name', action: () => copyToClipboard(icon.fileName || icon.name, 'Name copied'), secondary: true },
+    { label: 'Copy tags', action: () => copyToClipboard((icon.tags || []).join(', '), 'Tags copied'), secondary: true },
+    { label: 'Copy metadata', action: () => copyToClipboard(JSON.stringify(icon, null, 2), 'Metadata copied'), secondary: true },
+    { label: 'Open file', action: () => window.open(url, '_blank') }
+  ];
+
+  actions.forEach(({ label, action, secondary }) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if (secondary) button.classList.add('secondary');
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      action();
+    });
+    dom.modalActions.appendChild(button);
+  });
+
+  dom.modal.classList.add('is-open');
+  dom.modal.setAttribute('aria-hidden', 'false');
+};
+
+const closeModal = () => {
+  if (!dom.modal) return;
+  dom.modal.classList.remove('is-open');
+  dom.modal.setAttribute('aria-hidden', 'true');
 };
 
 const buildSelectOptions = (select, values, formatter = (value) => value) => {
@@ -238,6 +348,8 @@ const renderIcons = (reset) => {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = `${index * 12}ms`;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
 
     const thumb = document.createElement('div');
     thumb.className = 'thumb';
@@ -257,20 +369,22 @@ const renderIcons = (reset) => {
 
     const title = document.createElement('div');
     title.className = 'card-title';
-    title.textContent = icon.name;
+    title.textContent = icon.title || icon.name;
     title.title = icon.fileName;
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
     meta.innerHTML = `
       <span>${COLLECTION_LABELS[icon.collection] || toTitle(icon.collection)} / ${icon.category}</span>
+      <span>Library: ${icon.library || 'Unknown'}${icon.uiSet ? ` · ${icon.uiSet}` : ''}</span>
+      <span>Source: ${icon.source || 'Unknown'}${icon.brandOwner ? ` · ${icon.brandOwner}` : ''}</span>
       <span>${icon.fileName}</span>
       <span>License: ${icon.license || 'Unknown'} | ${formatBytes(icon.sizeBytes)}</span>
     `;
 
     const tags = document.createElement('div');
     tags.className = 'tags';
-    const tagItems = [icon.style, icon.brandOwner, icon.uiSet].filter(Boolean).slice(0, 3);
+    const tagItems = [icon.isNew ? 'new' : null, icon.style, icon.uiSet].filter(Boolean).slice(0, 3);
     tagItems.forEach((tag) => {
       const tagEl = document.createElement('span');
       tagEl.className = 'tag';
@@ -285,12 +399,18 @@ const renderIcons = (reset) => {
     copyPath.type = 'button';
     copyPath.className = 'secondary';
     copyPath.textContent = 'Copy path';
-    copyPath.addEventListener('click', () => copyToClipboard(icon.path));
+    copyPath.addEventListener('click', (event) => {
+      event.stopPropagation();
+      copyToClipboard(icon.path, 'Path copied');
+    });
 
     const copyUrl = document.createElement('button');
     copyUrl.type = 'button';
     copyUrl.textContent = 'Copy URL';
-    copyUrl.addEventListener('click', () => copyToClipboard(url));
+    copyUrl.addEventListener('click', (event) => {
+      event.stopPropagation();
+      copyToClipboard(url, 'URL copied');
+    });
 
     actions.appendChild(copyPath);
     actions.appendChild(copyUrl);
@@ -301,6 +421,14 @@ const renderIcons = (reset) => {
     if (tagItems.length) card.appendChild(tags);
     card.appendChild(actions);
 
+    card.addEventListener('click', () => openModal(icon));
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openModal(icon);
+      }
+    });
+
     dom.grid.appendChild(card);
   });
 
@@ -309,11 +437,12 @@ const renderIcons = (reset) => {
   dom.loadMoreButton.style.display = hasMore ? 'inline-flex' : 'none';
 };
 
-const copyToClipboard = async (text) => {
+const copyToClipboard = async (text, message = 'Copied to clipboard') => {
   if (!text) return;
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
+      showToast(message);
       return;
     }
   } catch (err) {
@@ -328,6 +457,7 @@ const copyToClipboard = async (text) => {
   fallback.select();
   document.execCommand('copy');
   document.body.removeChild(fallback);
+  showToast(message);
 };
 
 const loadData = async () => {
@@ -350,6 +480,7 @@ const loadData = async () => {
     state.catalog = (catalogData.icons || []).map((icon) => ({
       ...icon,
       search: [
+        icon.title,
         icon.name,
         icon.fileName,
         icon.category,
@@ -357,6 +488,10 @@ const loadData = async () => {
         icon.library,
         icon.source,
         icon.brandOwner,
+        icon.description,
+        icon.license,
+        icon.style,
+        icon.uiSet,
         ...(icon.tags || [])
       ]
         .filter(Boolean)
@@ -400,6 +535,7 @@ const init = () => {
     dom.baseUrlInput.value = localStorage.getItem(STORAGE_BASE_URL) || '';
   }
 
+  setThumbSize(dom.sizeRange.value);
   applySourceMode();
 
   dom.searchInput.addEventListener('input', debounce(syncFiltersFromInputs, 180));
@@ -407,6 +543,7 @@ const init = () => {
   dom.categorySelect.addEventListener('change', syncFiltersFromInputs);
   dom.filterSvg.addEventListener('change', syncFiltersFromInputs);
   dom.filterPng.addEventListener('change', syncFiltersFromInputs);
+  dom.sizeRange.addEventListener('input', (event) => setThumbSize(event.target.value));
   dom.sourceMode.addEventListener('change', applySourceMode);
   dom.applyBaseUrl.addEventListener('click', persistBaseUrl);
   dom.loadMoreButton.addEventListener('click', () => renderIcons(false));
@@ -417,6 +554,14 @@ const init = () => {
     state.filters.category = target.dataset.category;
     dom.categorySelect.value = state.filters.category;
     applyFilters();
+  });
+
+  dom.modalClose.addEventListener('click', closeModal);
+  dom.modal.addEventListener('click', (event) => {
+    if (event.target === dom.modal) closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeModal();
   });
 
   loadData();
