@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PiGlyphs Catalog</title>
+    <link rel="stylesheet" href="viewer.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-title">PiGlyphs</div>
+          <div class="brand-subtitle">Shared icon vault for PiSpace.dev and PiDEAS Studio</div>
+        </div>
+
+        <div class="controls">
+          <label class="field">
+            <span class="field-label">Search</span>
+            <input id="searchInput" type="search" placeholder="Name, tag, category, or collection" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Collection</span>
+            <select id="collectionSelect">
+              <option value="all">All collections</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Category</span>
+            <select id="categorySelect">
+              <option value="all">All categories</option>
+            </select>
+          </label>
+
+          <div class="field">
+            <span class="field-label">File type</span>
+            <div class="toggle-row">
+              <label class="toggle">
+                <input type="checkbox" id="filterSvg" checked />
+                <span>SVG</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" id="filterPng" checked />
+                <span>PNG</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field source-field">
+            <span class="field-label">Source</span>
+            <div class="source-row">
+              <select id="sourceMode">
+                <option value="local">Local icons</option>
+                <option value="cdn">CDN base</option>
+              </select>
+              <input
+                id="baseUrlInput"
+                type="url"
+                placeholder="https://cdn.jsdelivr.net/gh/anthonyrhopkins/PiGlyphs@main/icons"
+              />
+              <button id="applyBaseUrl" type="button">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat" id="totalCount">0 icons</div>
+          <div class="stat" id="filteredCount">0 shown</div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="sidebar-header">Categories</div>
+          <div id="categoryList" class="category-list"></div>
+        </aside>
+
+        <main class="main">
+          <div id="status" class="status">Loading metadata...</div>
+          <div id="grid" class="grid"></div>
+          <div class="load-more">
+            <button id="loadMoreButton" type="button">Load more</button>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="viewer.js"></script>
+  </body>
+</html>

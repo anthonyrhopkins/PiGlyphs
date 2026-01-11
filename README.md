@@ -42,6 +42,27 @@ Regenerate from the PiSpace logo manager source:
 PIGLYPHS_SOURCE=/absolute/path/to/ProLogoManagerWidget.jsx node scripts/build-catalog.mjs
 ```
 
+## Catalog Viewer
+
+Open `index.html` to browse the full catalog with search, filters, and copy actions.
+Because the viewer loads metadata via `fetch`, start a local server from the repo root:
+
+```
+npx serve
+```
+
+Then open the URL printed by the server.
+
+## GitHub Pages
+
+To publish the viewer:
+
+1. Make the repository public.
+2. Enable GitHub Pages from the `main` branch (root).
+3. Use the Pages URL to share the catalog.
+
+`.nojekyll` is included to ensure all icons and metadata are served as-is.
+
 ## Notes
 
 - Keep file names stable; downstream apps reference them by name.
