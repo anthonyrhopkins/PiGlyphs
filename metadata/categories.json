@@ -1,0 +1,498 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-11T13:26:04.030Z",
+  "defaultFolder": "m365",
+  "source": "ProLogoManagerWidget.jsx",
+  "categories": {
+    "Core Office": {
+      "description": "Core Microsoft Office applications",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "Collaboration": {
+      "description": "Collaboration and content creation tools",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 13
+    },
+    "Viva Family": {
+      "description": "Microsoft Viva employee experience platform",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 15
+    },
+    "Productivity Tools": {
+      "description": "Productivity and task management apps",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 14
+    },
+    "Power Platform": {
+      "description": "Microsoft Power Platform apps",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 21
+    },
+    "AI & Copilot": {
+      "description": "AI-powered tools and assistants",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 34
+    },
+    "AI Assistants": {
+      "description": "External AI assistants and platforms",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 24
+    },
+    "AI Tools & Platforms": {
+      "description": "AI development tools, frameworks, and platforms",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 28
+    },
+    "AI Creative": {
+      "description": "AI image, video, audio, and creative tools",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "AI Infrastructure": {
+      "description": "AI compute, hosting, and inference platforms",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 10
+    },
+    "AI Search & Research": {
+      "description": "AI-powered search and research tools",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 6
+    },
+    "Chinese AI": {
+      "description": "Chinese AI companies and models",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 7
+    },
+    "AI Models": {
+      "description": "Specific AI model icons",
+      "library": "AI",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 4
+    },
+    "Tech Companies": {
+      "description": "Major technology company logos",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "SAP": {
+      "description": "SAP SE corporate logo",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 3
+    },
+    "SAP BTP Core": {
+      "description": "SAP Business Technology Platform core services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 14
+    },
+    "SAP AI & ML": {
+      "description": "SAP AI and machine learning services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 15
+    },
+    "SAP Integration": {
+      "description": "SAP integration and connectivity services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 24
+    },
+    "SAP Build & Dev": {
+      "description": "SAP development and build tools",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 22
+    },
+    "SAP Security": {
+      "description": "SAP security and identity services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "SAP Management": {
+      "description": "SAP management and operations services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 16
+    },
+    "SAP Data Services": {
+      "description": "SAP data management and quality services",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 12
+    },
+    "SAP Services": {
+      "description": "SAP platform services and utilities",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 28
+    },
+    "SAP S/4HANA": {
+      "description": "SAP S/4HANA and ERP solutions",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "SAP Industry": {
+      "description": "SAP industry and vertical solutions",
+      "library": "SAP",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Power BI": {
+      "description": "Power BI icons and components",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 21
+    },
+    "Microsoft 365": {
+      "description": "Microsoft 365 suite and platform",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 17
+    },
+    "Dynamics 365": {
+      "description": "Dynamics 365 business applications",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 21
+    },
+    "Mixed Reality": {
+      "description": "Microsoft Mixed Reality and HoloLens apps",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 3
+    },
+    "Security & Compliance": {
+      "description": "Security, identity, and compliance tools",
+      "library": "Security",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 48
+    },
+    "Entra (Identity)": {
+      "description": "Microsoft Entra identity and access management",
+      "library": "Security",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 25
+    },
+    "Fabric & Data": {
+      "description": "Microsoft Fabric and data analytics",
+      "library": "Microsoft 365",
+      "isNew": true,
+      "folder": "m365",
+      "iconCount": 38
+    },
+    "API Connectors": {
+      "description": "API and integration connectors",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 9
+    },
+    "Azure Compute": {
+      "description": "Azure compute and container services",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 19
+    },
+    "Azure Networking": {
+      "description": "Azure networking and connectivity",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 21
+    },
+    "Azure Storage": {
+      "description": "Azure storage and data services",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 10
+    },
+    "Azure Databases": {
+      "description": "Azure database services",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Azure Integration": {
+      "description": "Azure integration and messaging",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 11
+    },
+    "Azure IoT": {
+      "description": "Azure Internet of Things services",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 10
+    },
+    "Azure DevOps": {
+      "description": "Azure DevOps and development tools",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Azure Management": {
+      "description": "Azure management and governance",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 24
+    },
+    "Azure Web": {
+      "description": "Azure web and media services",
+      "library": "Azure",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 7
+    },
+    "Intune": {
+      "description": "Microsoft Intune device management",
+      "library": "Security",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 3
+    },
+    "Other": {
+      "description": "Other Microsoft and third-party products",
+      "library": "Microsoft 365",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 5
+    },
+    "DevOps & CI/CD": {
+      "description": "DevOps, containers, and CI/CD tools",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 9
+    },
+    "Databases": {
+      "description": "Database and data storage systems",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Monitoring & Analytics": {
+      "description": "Monitoring, logging, and analytics platforms",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Security & Identity": {
+      "description": "Security, identity, and password management",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 4
+    },
+    "Project Management": {
+      "description": "Project management and collaboration tools",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 10
+    },
+    "Communication": {
+      "description": "Communication and messaging platforms",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 3
+    },
+    "Design Tools": {
+      "description": "Design and prototyping tools",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 2
+    },
+    "CRM & Business": {
+      "description": "CRM and business software",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 3
+    },
+    "E-commerce & Payments": {
+      "description": "E-commerce and payment platforms",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 5
+    },
+    "Cloud & Hosting": {
+      "description": "Cloud platforms and hosting services",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 6
+    },
+    "Operating Systems": {
+      "description": "Operating systems and Linux distributions",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 5
+    },
+    "Programming Languages": {
+      "description": "Programming languages and frameworks",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 18
+    },
+    "Web Dev Tools": {
+      "description": "Web development tools and build systems",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 8
+    },
+    "Fluent UI Icons": {
+      "description": "Microsoft Fluent UI System Icons",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 59
+    },
+    "Heroicons": {
+      "description": "Beautiful hand-crafted icons by Tailwind CSS team",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "Tabler Icons": {
+      "description": "Over 5,800 free MIT-licensed high-quality SVG icons",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "Phosphor Icons": {
+      "description": "Flexible icon family with 6 weights",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "Material Design Icons": {
+      "description": "Google Material Design icon library",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 30
+    },
+    "Bootstrap Icons": {
+      "description": "Official open source icon library for Bootstrap",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "Feather Icons": {
+      "description": "Simply beautiful open source icons",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "Ionicons": {
+      "description": "Premium icons for Ionic Framework",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "Remix Icons": {
+      "description": "Open source neutral-style icon system",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 19
+    },
+    "Octicons": {
+      "description": "GitHub official icon library",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "Eva Icons": {
+      "description": "Beautiful open source icons from Akveo",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "CSS.gg Icons": {
+      "description": "700+ Pure CSS and SVG icons",
+      "library": "Third Party",
+      "isNew": false,
+      "folder": "m365",
+      "iconCount": 20
+    },
+    "PiDEAS": {
+      "description": "PiDEAS Studio brand marks and core symbols",
+      "library": "PiDEAS",
+      "isNew": false,
+      "folder": "pideas",
+      "iconCount": 6
+    }
+  }
+}
