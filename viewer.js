@@ -4,6 +4,8 @@ const PAGE_SIZE = 180;
 const STORAGE_BASE_URL = 'piglphs.baseUrl';
 const STORAGE_SOURCE_MODE = 'piglphs.sourceMode';
 const DEFAULT_CDN_BASE = 'https://cdn.jsdelivr.net/gh/anthonyrhopkins/PiGlyphs@main/icons';
+const JSDELIVR_STATS_URL = 'https://data.jsdelivr.com/v1/package/gh/anthonyrhopkins/PiGlyphs@main/stats';
+const COUNTAPI_URL = 'https://api.countapi.xyz/hit/anthonyrhopkins-piglyphs/visits';
 
 const COLLECTION_LABELS = {
   'microsoft-365': 'Microsoft 365',
@@ -60,6 +62,8 @@ const dom = {
   applyBaseUrl: document.getElementById('applyBaseUrl'),
   totalCount: document.getElementById('totalCount'),
   filteredCount: document.getElementById('filteredCount'),
+  visitCount: document.getElementById('visitCount'),
+  downloadTotal: document.getElementById('downloadTotal'),
   categoryList: document.getElementById('categoryList'),
   grid: document.getElementById('grid'),
   status: document.getElementById('status'),
@@ -100,6 +104,13 @@ const formatBytes = (value) => {
     idx += 1;
   }
   return `${size.toFixed(size < 10 ? 1 : 0)} ${units[idx]}`;
+};
+
+const formatCount = (value) => {
+  const numeric = Number(value) || 0;
+  if (numeric >= 1000000) return `${(numeric / 1000000).toFixed(1)}m`;
+  if (numeric >= 1000) return `${(numeric / 1000).toFixed(1)}k`;
+  return String(numeric);
 };
 
 const getBaseName = (value) => {
@@ -178,6 +189,16 @@ const setStatus = (text) => {
   dom.status.style.display = 'block';
 };
 
+const setVisitCount = (value) => {
+  if (!dom.visitCount) return;
+  dom.visitCount.textContent = `${formatCount(value)} visits`;
+};
+
+const setDownloadTotal = (value) => {
+  if (!dom.downloadTotal) return;
+  dom.downloadTotal.textContent = `${formatCount(value)} CDN downloads (30d)`;
+};
+
 const applySourceMode = () => {
   const mode = dom.sourceMode.value;
   const storedBase = localStorage.getItem(STORAGE_BASE_URL) || '';
@@ -211,6 +232,7 @@ const buildMetaRows = (icon) => {
     ? icon.sizeVariants.join(', ')
     : (icon.sizeVariant ? String(icon.sizeVariant) : 'Standard');
   const variantCount = icon.familyCount || 1;
+  const downloadCount = icon.downloadCount ?? null;
   const rows = [
     icon.id ? ['ID', icon.id] : null,
     repoPath ? ['Repo Path', repoPath] : null,
@@ -225,6 +247,7 @@ const buildMetaRows = (icon) => {
     icon.style ? ['Style', icon.style] : null,
     ['File type', icon.extension ? icon.extension.toUpperCase() : 'Unknown'],
     ['File size', formatBytes(icon.sizeBytes)],
+    ['Downloads (30d)', downloadCount === null ? '—' : formatCount(downloadCount)],
     ['Sizes', sizeList],
     ['Variants', String(variantCount)]
   ].filter(Boolean);
@@ -526,6 +549,45 @@ const applyFilters = () => {
   renderIcons(true);
 };
 
+const loadDownloadStats = async () => {
+  try {
+    const response = await fetch(JSDELIVR_STATS_URL);
+    if (!response.ok) return;
+    const data = await response.json();
+    const files = data.files || {};
+    const downloadsByPath = new Map();
+
+    Object.entries(files).forEach(([path, entry]) => {
+      const normalized = path.replace(/^\\//, '');
+      if (!normalized.startsWith('icons/')) return;
+      const iconPath = normalized.slice('icons/'.length);
+      downloadsByPath.set(iconPath, entry.total || 0);
+    });
+
+    state.catalog = state.catalog.map((icon) => ({
+      ...icon,
+      downloadCount: downloadsByPath.get(icon.path) || 0
+    }));
+
+    setDownloadTotal(data.total || 0);
+    applyFilters();
+  } catch (err) {
+    console.warn('Failed to load jsDelivr stats', err);
+  }
+};
+
+const loadVisitCount = async () => {
+  if (isLocalHost()) return;
+  try {
+    const response = await fetch(COUNTAPI_URL);
+    if (!response.ok) return;
+    const data = await response.json();
+    setVisitCount(data.value || 0);
+  } catch (err) {
+    console.warn('Failed to load visit counter', err);
+  }
+};
+
 const renderIcons = (reset) => {
   if (!state.catalog.length) {
     return;
@@ -591,12 +653,16 @@ const renderIcons = (reset) => {
     const variantLabel = icon.familyCount && icon.familyCount > 1
       ? `Variants: ${icon.familyCount}`
       : null;
+    const downloadLabel = icon.downloadCount === undefined
+      ? 'Downloads (30d): —'
+      : `Downloads (30d): ${formatCount(icon.downloadCount)}`;
     const metaLines = [
       `${collectionLabel} / ${icon.category}`,
       `Library: ${icon.library || 'Unknown'}${icon.uiSet ? ` · ${icon.uiSet}` : ''}`,
       `Source: ${icon.source || 'Unknown'}${icon.brandOwner ? ` · ${icon.brandOwner}` : ''}`,
       sizeLabel,
       variantLabel,
+      downloadLabel,
       icon.fileName,
       `License: ${icon.license || 'Unknown'} | ${formatBytes(icon.sizeBytes)}`
     ].filter(Boolean);
@@ -766,7 +832,11 @@ const loadData = async () => {
     buildCategoryList();
 
     dom.totalCount.textContent = `${state.catalog.length} icons`;
+    setVisitCount(0);
+    setDownloadTotal(0);
     applyFilters();
+    loadDownloadStats();
+    loadVisitCount();
   } catch (err) {
     console.error(err);
     setStatus('Failed to load metadata. Run a local server (npx serve) from the repo root, then open index.html.');
