@@ -114,6 +114,11 @@ const showToast = (message) => {
   }, 1400);
 };
 
+const isLocalHost = () => {
+  const host = window.location.hostname;
+  return window.location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
+};
+
 const getBaseUrl = () => {
   if (dom.sourceMode.value === 'local') {
     return './icons';
@@ -159,8 +164,10 @@ const persistBaseUrl = () => {
 
 const buildMetaRows = (icon) => {
   const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
+  const repoPath = icon.path ? `icons/${icon.path}` : '';
   const rows = [
     icon.id ? ['ID', icon.id] : null,
+    repoPath ? ['Repo Path', repoPath] : null,
     ['Collection', collectionLabel],
     ['Category', icon.category || 'Uncategorized'],
     ['Library', icon.library || 'Unknown'],
@@ -192,7 +199,7 @@ const openModal = (icon) => {
   dom.modalImage.alt = icon.name || icon.fileName || 'icon';
   dom.modalTitle.textContent = icon.title || icon.name || icon.fileName || 'Icon';
   dom.modalSubtitle.textContent = `${collectionLabel} / ${icon.category || 'Uncategorized'}`;
-  dom.modalPath.textContent = repoPath;
+  dom.modalPath.textContent = cdnUrl;
   dom.modalMeta.innerHTML = buildMetaRows(icon);
 
   dom.modalTags.innerHTML = '';
@@ -372,7 +379,6 @@ const renderIcons = (reset) => {
     const img = document.createElement('img');
     const previewUrl = baseUrl ? `${baseUrl}/${icon.path}` : icon.path;
     const cdnUrl = cdnBaseUrl ? `${cdnBaseUrl}/${icon.path}` : previewUrl;
-    const repoPath = `icons/${icon.path}`;
     img.src = previewUrl;
     img.alt = icon.name;
     img.loading = 'lazy';
@@ -412,24 +418,13 @@ const renderIcons = (reset) => {
     const actions = document.createElement('div');
     actions.className = 'card-actions';
 
-    const copyPath = document.createElement('button');
-    copyPath.type = 'button';
-    copyPath.className = 'secondary';
-    copyPath.textContent = 'Copy repo path';
-    copyPath.addEventListener('click', (event) => {
-      event.stopPropagation();
-      copyToClipboard(repoPath, 'Repo path copied');
-    });
-
     const copyUrl = document.createElement('button');
     copyUrl.type = 'button';
-    copyUrl.textContent = 'Copy CDN URL';
+    copyUrl.textContent = 'Copy URL';
     copyUrl.addEventListener('click', (event) => {
       event.stopPropagation();
       copyToClipboard(cdnUrl, 'CDN URL copied');
     });
-
-    actions.appendChild(copyPath);
     actions.appendChild(copyUrl);
 
     card.appendChild(thumb);
@@ -549,9 +544,18 @@ const init = () => {
   if (!localStorage.getItem(STORAGE_BASE_URL)) {
     localStorage.setItem(STORAGE_BASE_URL, DEFAULT_CDN_BASE);
   }
-  const storedMode = localStorage.getItem(STORAGE_SOURCE_MODE) || 'local';
-  dom.sourceMode.value = storedMode;
-  if (storedMode === 'cdn') {
+  const allowLocalMode = isLocalHost();
+  const storedMode = localStorage.getItem(STORAGE_SOURCE_MODE);
+  const defaultMode = allowLocalMode ? 'local' : 'cdn';
+  const initialMode = storedMode && (storedMode !== 'local' || allowLocalMode) ? storedMode : defaultMode;
+  dom.sourceMode.value = initialMode;
+
+  const localOption = dom.sourceMode.querySelector('option[value="local"]');
+  if (!allowLocalMode && localOption) {
+    localOption.disabled = true;
+  }
+
+  if (initialMode === 'cdn') {
     dom.baseUrlInput.value = localStorage.getItem(STORAGE_BASE_URL) || '';
   }
 
