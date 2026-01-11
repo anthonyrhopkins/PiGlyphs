@@ -90,6 +90,13 @@ const normalizeBaseUrl = (url) => {
   return url.trim().replace(/\/+$/, '');
 };
 
+const getCdnBaseUrl = () => {
+  const direct = normalizeBaseUrl(dom.baseUrlInput?.value || '');
+  if (direct) return direct;
+  const stored = normalizeBaseUrl(localStorage.getItem(STORAGE_BASE_URL));
+  return stored || DEFAULT_CDN_BASE;
+};
+
 const setThumbSize = (value) => {
   const numeric = Number(value) || 150;
   const imageSize = Math.max(70, numeric - 30);
@@ -129,7 +136,7 @@ const applySourceMode = () => {
   const storedBase = localStorage.getItem(STORAGE_BASE_URL) || '';
 
   if (mode === 'local') {
-    dom.baseUrlInput.value = '';
+    dom.baseUrlInput.value = storedBase || DEFAULT_CDN_BASE;
     dom.baseUrlInput.disabled = true;
     dom.applyBaseUrl.disabled = true;
   } else {
@@ -153,6 +160,7 @@ const persistBaseUrl = () => {
 const buildMetaRows = (icon) => {
   const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
   const rows = [
+    icon.id ? ['ID', icon.id] : null,
     ['Collection', collectionLabel],
     ['Category', icon.category || 'Uncategorized'],
     ['Library', icon.library || 'Unknown'],
@@ -173,15 +181,18 @@ const buildMetaRows = (icon) => {
 
 const openModal = (icon) => {
   if (!dom.modal) return;
-  const baseUrl = getBaseUrl();
-  const url = baseUrl ? `${baseUrl}/${icon.path}` : icon.path;
+  const previewBaseUrl = getBaseUrl();
+  const cdnBaseUrl = getCdnBaseUrl();
+  const previewUrl = previewBaseUrl ? `${previewBaseUrl}/${icon.path}` : icon.path;
+  const cdnUrl = cdnBaseUrl ? `${cdnBaseUrl}/${icon.path}` : previewUrl;
+  const repoPath = `icons/${icon.path}`;
   const collectionLabel = COLLECTION_LABELS[icon.collection] || toTitle(icon.collection);
 
-  dom.modalImage.src = url;
+  dom.modalImage.src = previewUrl;
   dom.modalImage.alt = icon.name || icon.fileName || 'icon';
   dom.modalTitle.textContent = icon.title || icon.name || icon.fileName || 'Icon';
   dom.modalSubtitle.textContent = `${collectionLabel} / ${icon.category || 'Uncategorized'}`;
-  dom.modalPath.textContent = icon.path || '';
+  dom.modalPath.textContent = repoPath;
   dom.modalMeta.innerHTML = buildMetaRows(icon);
 
   dom.modalTags.innerHTML = '';
@@ -202,13 +213,16 @@ const openModal = (icon) => {
   dom.modalActions.innerHTML = '';
 
   const actions = [
-    { label: 'Copy URL', action: () => copyToClipboard(url, 'URL copied') },
-    { label: 'Copy path', action: () => copyToClipboard(icon.path, 'Path copied'), secondary: true },
+    { label: 'Copy CDN URL', action: () => copyToClipboard(cdnUrl, 'CDN URL copied') },
+    { label: 'Copy repo path', action: () => copyToClipboard(repoPath, 'Repo path copied'), secondary: true },
+    dom.sourceMode.value === 'local'
+      ? { label: 'Copy local URL', action: () => copyToClipboard(previewUrl, 'Local URL copied'), secondary: true }
+      : null,
     { label: 'Copy name', action: () => copyToClipboard(icon.fileName || icon.name, 'Name copied'), secondary: true },
     { label: 'Copy tags', action: () => copyToClipboard((icon.tags || []).join(', '), 'Tags copied'), secondary: true },
     { label: 'Copy metadata', action: () => copyToClipboard(JSON.stringify(icon, null, 2), 'Metadata copied'), secondary: true },
-    { label: 'Open file', action: () => window.open(url, '_blank') }
-  ];
+    { label: 'Open file', action: () => window.open(cdnUrl, '_blank') }
+  ].filter(Boolean);
 
   actions.forEach(({ label, action, secondary }) => {
     const button = document.createElement('button');
@@ -334,6 +348,7 @@ const renderIcons = (reset) => {
     dom.loadMoreButton.style.display = 'none';
     return;
   }
+  const cdnBaseUrl = getCdnBaseUrl();
   const start = state.page * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, state.filtered.length);
   const slice = state.filtered.slice(start, end);
@@ -355,8 +370,10 @@ const renderIcons = (reset) => {
     thumb.className = 'thumb';
 
     const img = document.createElement('img');
-    const url = baseUrl ? `${baseUrl}/${icon.path}` : icon.path;
-    img.src = url;
+    const previewUrl = baseUrl ? `${baseUrl}/${icon.path}` : icon.path;
+    const cdnUrl = cdnBaseUrl ? `${cdnBaseUrl}/${icon.path}` : previewUrl;
+    const repoPath = `icons/${icon.path}`;
+    img.src = previewUrl;
     img.alt = icon.name;
     img.loading = 'lazy';
     img.decoding = 'async';
@@ -398,18 +415,18 @@ const renderIcons = (reset) => {
     const copyPath = document.createElement('button');
     copyPath.type = 'button';
     copyPath.className = 'secondary';
-    copyPath.textContent = 'Copy path';
+    copyPath.textContent = 'Copy repo path';
     copyPath.addEventListener('click', (event) => {
       event.stopPropagation();
-      copyToClipboard(icon.path, 'Path copied');
+      copyToClipboard(repoPath, 'Repo path copied');
     });
 
     const copyUrl = document.createElement('button');
     copyUrl.type = 'button';
-    copyUrl.textContent = 'Copy URL';
+    copyUrl.textContent = 'Copy CDN URL';
     copyUrl.addEventListener('click', (event) => {
       event.stopPropagation();
-      copyToClipboard(url, 'URL copied');
+      copyToClipboard(cdnUrl, 'CDN URL copied');
     });
 
     actions.appendChild(copyPath);
@@ -529,6 +546,9 @@ const syncFiltersFromInputs = () => {
 };
 
 const init = () => {
+  if (!localStorage.getItem(STORAGE_BASE_URL)) {
+    localStorage.setItem(STORAGE_BASE_URL, DEFAULT_CDN_BASE);
+  }
   const storedMode = localStorage.getItem(STORAGE_SOURCE_MODE) || 'local';
   dom.sourceMode.value = storedMode;
   if (storedMode === 'cdn') {
