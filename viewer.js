@@ -21,13 +21,14 @@ const KNOWN_SIZES = new Set([16, 20, 24, 28, 32, 36, 40, 48, 64, 72, 96, 128, 25
 
 const state = {
   catalog: [],
+  collections: [],
   categories: [],
   filtered: [],
   page: 0,
   filters: {
     search: '',
-    collection: 'all',
-    category: 'all',
+    collections: [],
+    categories: [],
     svg: true,
     png: true
   }
@@ -36,7 +37,21 @@ const state = {
 const dom = {
   searchInput: document.getElementById('searchInput'),
   collectionSelect: document.getElementById('collectionSelect'),
+  collectionTrigger: document.getElementById('collectionTrigger'),
+  collectionLabel: document.getElementById('collectionLabel'),
+  collectionCount: document.getElementById('collectionCount'),
+  collectionSearch: document.getElementById('collectionSearch'),
+  collectionOptions: document.getElementById('collectionOptions'),
+  collectionPanel: document.getElementById('collectionPanel'),
+  collectionClear: document.getElementById('collectionClear'),
   categorySelect: document.getElementById('categorySelect'),
+  categoryTrigger: document.getElementById('categoryTrigger'),
+  categoryLabel: document.getElementById('categoryLabel'),
+  categoryCount: document.getElementById('categoryCount'),
+  categorySearch: document.getElementById('categorySearch'),
+  categoryOptions: document.getElementById('categoryOptions'),
+  categoryPanel: document.getElementById('categoryPanel'),
+  categoryClear: document.getElementById('categoryClear'),
   filterSvg: document.getElementById('filterSvg'),
   filterPng: document.getElementById('filterPng'),
   sizeRange: document.getElementById('sizeRange'),
@@ -286,23 +301,149 @@ const closeModal = () => {
   dom.modal.setAttribute('aria-hidden', 'true');
 };
 
-const buildSelectOptions = (select, values, formatter = (value) => value) => {
-  const current = select.value;
-  select.innerHTML = '';
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.textContent = `All ${select === dom.collectionSelect ? 'collections' : 'categories'}`;
-  select.appendChild(allOption);
+const getMultiConfig = (type) => {
+  if (type === 'collections') {
+    return {
+      wrapper: dom.collectionSelect,
+      trigger: dom.collectionTrigger,
+      label: dom.collectionLabel,
+      count: dom.collectionCount,
+      search: dom.collectionSearch,
+      options: dom.collectionOptions,
+      clear: dom.collectionClear,
+      items: state.collections,
+      emptyText: 'No collections found.'
+    };
+  }
 
-  values.forEach((value) => {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = formatter(value);
-    select.appendChild(option);
+  return {
+    wrapper: dom.categorySelect,
+    trigger: dom.categoryTrigger,
+    label: dom.categoryLabel,
+    count: dom.categoryCount,
+    search: dom.categorySearch,
+    options: dom.categoryOptions,
+    clear: dom.categoryClear,
+    items: state.categories,
+    emptyText: 'No categories found.'
+  };
+};
+
+const updateMultiLabel = (type) => {
+  const config = getMultiConfig(type);
+  if (!config.label) return;
+  const selected = state.filters[type];
+  const labelMap = new Map(config.items.map((item) => [item.value, item.label]));
+
+  if (!selected.length) {
+    config.label.textContent = `All ${type === 'collections' ? 'collections' : 'categories'}`;
+    if (config.count) {
+      config.count.textContent = '';
+      config.count.style.display = 'none';
+    }
+    return;
+  }
+
+  const labels = selected.map((value) => labelMap.get(value) || value);
+  config.label.textContent = labels.length <= 2 ? labels.join(', ') : `${labels.length} selected`;
+  if (config.count) {
+    config.count.textContent = String(labels.length);
+    config.count.style.display = 'inline-flex';
+  }
+};
+
+const renderMultiOptions = (type) => {
+  const config = getMultiConfig(type);
+  if (!config.options) return;
+  const query = (config.search?.value || '').trim().toLowerCase();
+  const selected = new Set(state.filters[type]);
+
+  const matches = config.items.filter((item) => {
+    if (!query) return true;
+    const haystack = [
+      item.label,
+      item.value,
+      item.description,
+      item.library,
+      item.collection
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(query);
   });
 
-  if ([...select.options].some((opt) => opt.value === current)) {
-    select.value = current;
+  config.options.innerHTML = '';
+
+  if (!matches.length) {
+    const empty = document.createElement('div');
+    empty.className = 'multi-empty';
+    empty.textContent = config.emptyText;
+    config.options.appendChild(empty);
+    return;
+  }
+
+  matches.forEach((item) => {
+    const row = document.createElement('label');
+    row.className = 'multi-option';
+
+    const nameWrap = document.createElement('span');
+    nameWrap.className = 'option-name';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = selected.has(item.value);
+    checkbox.addEventListener('change', () => toggleSelection(type, item.value));
+
+    const label = document.createElement('span');
+    label.textContent = item.label;
+
+    nameWrap.appendChild(checkbox);
+    nameWrap.appendChild(label);
+
+    row.appendChild(nameWrap);
+
+    if (item.count !== undefined) {
+      const count = document.createElement('span');
+      count.className = 'option-count';
+      count.textContent = item.count;
+      row.appendChild(count);
+    }
+
+    config.options.appendChild(row);
+  });
+};
+
+const toggleSelection = (type, value) => {
+  const selected = new Set(state.filters[type]);
+  if (selected.has(value)) {
+    selected.delete(value);
+  } else {
+    selected.add(value);
+  }
+  state.filters[type] = Array.from(selected);
+  applyFilters();
+};
+
+const clearSelection = (type) => {
+  state.filters[type] = [];
+  applyFilters();
+};
+
+const closeAllPanels = () => {
+  dom.collectionSelect?.classList.remove('is-open');
+  dom.categorySelect?.classList.remove('is-open');
+};
+
+const togglePanel = (type) => {
+  const config = getMultiConfig(type);
+  if (!config.wrapper) return;
+  const isOpen = config.wrapper.classList.contains('is-open');
+  closeAllPanels();
+  if (!isOpen) {
+    config.wrapper.classList.add('is-open');
+    config.search?.focus();
+    renderMultiOptions(type);
   }
 };
 
@@ -311,8 +452,9 @@ const buildCategoryList = () => {
 
   const allItem = document.createElement('button');
   allItem.type = 'button';
-  allItem.className = `category-item ${state.filters.category === 'all' ? 'active' : ''}`;
-  allItem.dataset.category = 'all';
+  const hasSelection = state.filters.categories.length > 0;
+  allItem.className = `category-item ${hasSelection ? '' : 'active'}`;
+  allItem.dataset.category = '__all';
   allItem.innerHTML = `<span>All categories</span><span class="category-count">${state.catalog.length}</span>`;
   dom.categoryList.appendChild(allItem);
 
@@ -320,7 +462,7 @@ const buildCategoryList = () => {
     const colA = a.collection || '';
     const colB = b.collection || '';
     if (colA === colB) {
-      return a.name.localeCompare(b.name);
+      return a.label.localeCompare(b.label);
     }
     return colA.localeCompare(colB);
   });
@@ -328,17 +470,23 @@ const buildCategoryList = () => {
   categories.forEach((category) => {
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = `category-item ${state.filters.category === category.name ? 'active' : ''}`;
-    item.dataset.category = category.name;
-    item.innerHTML = `<span>${category.name}</span><span class="category-count">${category.iconCount}</span>`;
+    const isActive = state.filters.categories.includes(category.value);
+    item.className = `category-item ${isActive ? 'active' : ''}`;
+    item.dataset.category = category.value;
+    item.innerHTML = `<span>${category.label}</span><span class="category-count">${category.count}</span>`;
     dom.categoryList.appendChild(item);
   });
 };
 
 const updateCategoryActive = () => {
   const items = dom.categoryList.querySelectorAll('.category-item');
+  const selected = new Set(state.filters.categories);
   items.forEach((item) => {
-    item.classList.toggle('active', item.dataset.category === state.filters.category);
+    if (item.dataset.category === '__all') {
+      item.classList.toggle('active', selected.size === 0);
+    } else {
+      item.classList.toggle('active', selected.has(item.dataset.category));
+    }
   });
 };
 
@@ -348,12 +496,14 @@ const applyFilters = () => {
   const allowedExtensions = new Set();
   if (state.filters.svg) allowedExtensions.add('svg');
   if (state.filters.png) allowedExtensions.add('png');
+  const selectedCollections = new Set(state.filters.collections);
+  const selectedCategories = new Set(state.filters.categories);
 
   state.filtered = state.catalog.filter((icon) => {
-    if (state.filters.collection !== 'all' && icon.collection !== state.filters.collection) {
+    if (selectedCollections.size && !selectedCollections.has(icon.collection)) {
       return false;
     }
-    if (state.filters.category !== 'all' && icon.category !== state.filters.category) {
+    if (selectedCategories.size && !selectedCategories.has(icon.category)) {
       return false;
     }
     if (!allowedExtensions.has(icon.extension)) {
@@ -369,6 +519,10 @@ const applyFilters = () => {
   dom.filteredCount.textContent = `${state.filtered.length} shown`;
 
   updateCategoryActive();
+  updateMultiLabel('collections');
+  updateMultiLabel('categories');
+  renderMultiOptions('collections');
+  renderMultiOptions('categories');
   renderIcons(true);
 };
 
@@ -582,15 +736,32 @@ const loadData = async () => {
       };
     });
 
-    state.categories = categoriesData.categories || [];
+    const collectionCounts = new Map();
+    state.catalog.forEach((icon) => {
+      const key = icon.collection || 'uncategorized';
+      collectionCounts.set(key, (collectionCounts.get(key) || 0) + 1);
+    });
+
+    state.collections = Array.from(collectionCounts.entries())
+      .map(([value, count]) => ({
+        value,
+        label: COLLECTION_LABELS[value] || toTitle(value),
+        count
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    state.categories = (categoriesData.categories || []).map((category) => ({
+      value: category.name,
+      label: category.name,
+      count: category.iconCount || 0,
+      description: category.description || '',
+      library: category.library || '',
+      collection: category.collection || ''
+    }));
+
+    state.categories.sort((a, b) => a.label.localeCompare(b.label));
 
     state.catalog.sort((a, b) => a.name.localeCompare(b.name));
-
-    const collections = Array.from(new Set(state.catalog.map((icon) => icon.collection))).sort();
-    buildSelectOptions(dom.collectionSelect, collections, (value) => COLLECTION_LABELS[value] || toTitle(value));
-
-    const categoryNames = state.categories.map((category) => category.name).sort();
-    buildSelectOptions(dom.categorySelect, categoryNames, (value) => value);
 
     buildCategoryList();
 
@@ -604,8 +775,6 @@ const loadData = async () => {
 
 const syncFiltersFromInputs = () => {
   state.filters.search = dom.searchInput.value || '';
-  state.filters.collection = dom.collectionSelect.value || 'all';
-  state.filters.category = dom.categorySelect.value || 'all';
   state.filters.svg = dom.filterSvg.checked;
   state.filters.png = dom.filterPng.checked;
   applyFilters();
@@ -634,8 +803,6 @@ const init = () => {
   applySourceMode();
 
   dom.searchInput.addEventListener('input', debounce(syncFiltersFromInputs, 180));
-  dom.collectionSelect.addEventListener('change', syncFiltersFromInputs);
-  dom.categorySelect.addEventListener('change', syncFiltersFromInputs);
   dom.filterSvg.addEventListener('change', syncFiltersFromInputs);
   dom.filterPng.addEventListener('change', syncFiltersFromInputs);
   dom.sizeRange.addEventListener('input', (event) => setThumbSize(event.target.value));
@@ -643,12 +810,41 @@ const init = () => {
   dom.applyBaseUrl.addEventListener('click', persistBaseUrl);
   dom.loadMoreButton.addEventListener('click', () => renderIcons(false));
 
+  dom.collectionTrigger.addEventListener('click', (event) => {
+    event.stopPropagation();
+    togglePanel('collections');
+  });
+  dom.categoryTrigger.addEventListener('click', (event) => {
+    event.stopPropagation();
+    togglePanel('categories');
+  });
+  dom.collectionSearch.addEventListener('input', () => renderMultiOptions('collections'));
+  dom.categorySearch.addEventListener('input', () => renderMultiOptions('categories'));
+  dom.collectionClear.addEventListener('click', (event) => {
+    event.stopPropagation();
+    clearSelection('collections');
+  });
+  dom.categoryClear.addEventListener('click', (event) => {
+    event.stopPropagation();
+    clearSelection('categories');
+  });
+
+  document.addEventListener('click', (event) => {
+    if (dom.collectionSelect?.contains(event.target) || dom.categorySelect?.contains(event.target)) {
+      return;
+    }
+    closeAllPanels();
+  });
+
   dom.categoryList.addEventListener('click', (event) => {
     const target = event.target.closest('.category-item');
     if (!target) return;
-    state.filters.category = target.dataset.category;
-    dom.categorySelect.value = state.filters.category;
-    applyFilters();
+    const value = target.dataset.category;
+    if (value === '__all') {
+      clearSelection('categories');
+      return;
+    }
+    toggleSelection('categories', value);
   });
 
   dom.modalClose.addEventListener('click', closeModal);
@@ -656,7 +852,10 @@ const init = () => {
     if (event.target === dom.modal) closeModal();
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeModal();
+    if (event.key === 'Escape') {
+      closeModal();
+      closeAllPanels();
+    }
   });
 
   loadData();

@@ -20,19 +20,45 @@
             <input id="searchInput" type="search" placeholder="Name, tag, category, or collection" autocomplete="off" />
           </label>
 
-          <label class="field">
-            <span class="field-label">Collection</span>
-            <select id="collectionSelect">
-              <option value="all">All collections</option>
-            </select>
-          </label>
+          <div class="field">
+            <span class="field-label">Collections</span>
+            <div class="multi-select" id="collectionSelect">
+              <button class="multi-trigger" id="collectionTrigger" type="button">
+                <span id="collectionLabel">All collections</span>
+                <span class="multi-count" id="collectionCount"></span>
+              </button>
+              <div class="multi-panel" id="collectionPanel">
+                <input
+                  id="collectionSearch"
+                  type="search"
+                  placeholder="Search collections"
+                  autocomplete="off"
+                />
+                <div class="multi-options" id="collectionOptions"></div>
+                <button class="multi-clear" id="collectionClear" type="button">Clear selection</button>
+              </div>
+            </div>
+          </div>
 
-          <label class="field">
-            <span class="field-label">Category</span>
-            <select id="categorySelect">
-              <option value="all">All categories</option>
-            </select>
-          </label>
+          <div class="field">
+            <span class="field-label">Categories</span>
+            <div class="multi-select" id="categorySelect">
+              <button class="multi-trigger" id="categoryTrigger" type="button">
+                <span id="categoryLabel">All categories</span>
+                <span class="multi-count" id="categoryCount"></span>
+              </button>
+              <div class="multi-panel" id="categoryPanel">
+                <input
+                  id="categorySearch"
+                  type="search"
+                  placeholder="Search categories"
+                  autocomplete="off"
+                />
+                <div class="multi-options" id="categoryOptions"></div>
+                <button class="multi-clear" id="categoryClear" type="button">Clear selection</button>
+              </div>
+            </div>
+          </div>
 
           <label class="field">
             <span class="field-label">Thumb size</span>
