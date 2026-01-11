@@ -1,0 +1,64 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Cosmic background gradient -->
+    <radialGradient id="cosmicBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a237e" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#0d1442"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <!-- Blue glow gradient -->
+    <radialGradient id="blueGlow" cx="50%" cy="60%" r="60%">
+      <stop offset="0%" stop-color="#4fc3f7" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#2196f3" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0d47a1" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Purple accent glow -->
+    <radialGradient id="purpleGlow" cx="30%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#9c27b0" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#4a148c" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Text glow filter -->
+    <filter id="textGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Outer glow for icon -->
+    <filter id="outerGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#4fc3f7" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="31" fill="url(#cosmicBg)"/>
+
+  <!-- Cosmic glow effects -->
+  <ellipse cx="32" cy="38" rx="28" ry="18" fill="url(#blueGlow)"/>
+  <ellipse cx="24" cy="42" rx="20" ry="14" fill="url(#purpleGlow)"/>
+
+  <!-- Stars -->
+  <circle cx="12" cy="18" r="0.8" fill="white" opacity="0.8"/>
+  <circle cx="52" cy="14" r="0.6" fill="white" opacity="0.6"/>
+  <circle cx="48" cy="28" r="0.5" fill="white" opacity="0.7"/>
+  <circle cx="18" cy="48" r="0.7" fill="white" opacity="0.5"/>
+  <circle cx="54" cy="44" r="0.4" fill="white" opacity="0.6"/>
+  <circle cx="8" cy="36" r="0.5" fill="white" opacity="0.4"/>
+
+  <!-- Pi symbol - stylized like the logo -->
+  <g filter="url(#outerGlow)">
+    <text x="32" y="46" text-anchor="middle" font-family="Georgia, serif" font-size="38" font-weight="400" fill="white" filter="url(#textGlow)">π</text>
+  </g>
+
+  <!-- Subtle border -->
+  <circle cx="32" cy="32" r="30.5" fill="none" stroke="#4fc3f7" stroke-width="0.5" opacity="0.3"/>
+</svg>
