@@ -44,6 +44,9 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 28px 40px 20px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 30;
 }
 
 .brand {
